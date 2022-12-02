@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wi-spring-cosmos-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wi-spring-cosmos-app
+  template:
+    metadata:
+      labels:
+        app: wi-spring-cosmos-app
+        namespace: ${SERVICE_ACCOUNT_NAMESPACE}
+    spec:
+      serviceAccountName: ${SERVICE_ACCOUNT_NAME}
+      containers:
+        - name: wi-spring-aks-cosmos
+          image: widemoregistry.azurecr.io/wi-spring-aks-cosmos:v2
+          imagePullPolicy: Always
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "dev"
+          ports:
+            - containerPort: 8080
+              name: app
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spring-cosmos-app-internal
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 8080
+  selector:
+    app: wi-spring-cosmos-app
